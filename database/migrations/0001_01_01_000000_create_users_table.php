@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->foreignId('tenant_id')->constrained()->cascadeOnDelete();
+            $table->unsignedBigInteger('branch_id')->nullable()->index();
+            $table->string('full_name');
             $table->string('email')->unique();
             $table->string('phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();
@@ -44,8 +46,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('users');
     }
 };

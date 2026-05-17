@@ -15,70 +15,55 @@ class AuthController extends Controller
     {
         try {
             $credentials = $request->validate([
-                'email'    => 'required|email',
-                'password' => 'required|string',
+                'email' => ['required', 'email'],
+                'password' => ['required', 'string'],
             ]);
 
             $user = User::where('email', '=', $credentials['email'], 'and')->first();
 
             if (! $user || ! Hash::check($credentials['password'], $user->password)) {
-                return response()->json(['message' => 'Email ou mot de passe incorrect.'], 401);
+                return response()->json(['message' => 'Invalid email or password.'], 401);
             }
 
             if (! $user->is_active) {
-                return response()->json(['message' => 'Ce compte est désactivé.'], 403);
+                return response()->json(['message' => 'This account is disabled.'], 403);
             }
 
-            // One-session policy: revoke old tokens
             $user->tokens()->delete();
 
-            $token = $user->createToken('api-token')->plainTextToken;
-
             return response()->json([
-                'token' => $token,
-                'user'  => $this->userPayload($user),
+                'token' => $user->createToken('api-token')->plainTextToken,
+                'user' => $this->userPayload($user),
             ]);
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
-        } catch (\Throwable $e) {
-            return response()->json(['message' => 'Erreur serveur.'], 500);
         }
     }
 
     public function me(Request $request): JsonResponse
     {
-        try {
-            return response()->json($this->userPayload($request->user()));
-        } catch (\Throwable $e) {
-            return response()->json(['message' => 'Erreur serveur.'], 500);
-        }
+        return response()->json($this->userPayload($request->user()));
     }
 
     public function logout(Request $request): JsonResponse
     {
-        try {
-            $token = $request->user()->currentAccessToken();
+        $token = $request->user()->currentAccessToken();
 
-            if ($token) {
-                // Use query delete to avoid static analysis issue about delete() on the model
-                $request->user()->tokens()->where('id', $token->id)->delete();
-            }
-
-            return response()->json(['message' => 'Déconnecté avec succès.']);
-        } catch (\Throwable $e) {
-            return response()->json(['message' => 'Erreur serveur.'], 500);
+        if ($token) {
+            $request->user()->tokens()->where('id', $token->id)->delete();
         }
+
+        return response()->json(['message' => 'Logged out successfully.']);
     }
 
     public function updateProfile(Request $request): JsonResponse
     {
         try {
             $user = $request->user();
-
             $data = $request->validate([
-                'full_name' => 'sometimes|string|max:255',
-                'phone'     => 'sometimes|nullable|string|max:30',
-                'password'  => 'sometimes|string|min:8|confirmed',
+                'full_name' => ['sometimes', 'string', 'max:255'],
+                'phone' => ['sometimes', 'nullable', 'string', 'max:30'],
+                'password' => ['sometimes', 'string', 'min:8', 'confirmed'],
             ]);
 
             if (isset($data['password'])) {
@@ -88,27 +73,25 @@ class AuthController extends Controller
             $user->update($data);
 
             return response()->json([
-                'message' => 'Profil mis à jour.',
-                'user'    => $this->userPayload($user->fresh()),
+                'message' => 'Profile updated.',
+                'user' => $this->userPayload($user->fresh()),
             ]);
         } catch (ValidationException $e) {
             return response()->json(['errors' => $e->errors()], 422);
-        } catch (\Throwable $e) {
-            return response()->json(['message' => 'Erreur serveur.'], 500);
         }
     }
-
-    // ── Private helpers ───────────────────────────────────────────────────────
 
     private function userPayload(User $user): array
     {
         return [
-            'id'          => $user->id,
-            'full_name'   => $user->full_name,
-            'email'       => $user->email,
-            'phone'       => $user->phone,
-            'is_active'   => $user->is_active,
-            'roles'       => $user->getRoleNames(),
+            'id' => $user->id,
+            'tenant_id' => $user->tenant_id,
+            'branch_id' => $user->branch_id,
+            'full_name' => $user->full_name,
+            'email' => $user->email,
+            'phone' => $user->phone,
+            'is_active' => $user->is_active,
+            'roles' => $user->getRoleNames(),
             'permissions' => $user->getAllPermissions()->pluck('name'),
         ];
     }
