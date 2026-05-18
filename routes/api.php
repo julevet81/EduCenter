@@ -18,9 +18,10 @@ use App\Http\Controllers\Api\GroupController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\LevelController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\ParentNotificationController;
 use App\Http\Controllers\Api\PaymentController;
-use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\PayrollController;
+use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\ScheduleController;
 use App\Http\Controllers\Api\SectionController;
@@ -31,6 +32,7 @@ use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('auth/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
+Route::post('auth/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('auth/me', [AuthController::class, 'me']);
@@ -64,4 +66,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('expenses', ExpenseController::class);
     Route::apiResource('payrolls', PayrollController::class);
     Route::apiResource('notifications', NotificationController::class);
+    Route::get('parent-notifications', [ParentNotificationController::class, 'index']);
+    Route::post('parent-notifications/payment-reminders', [ParentNotificationController::class, 'sendInvoiceReminders']);
 });

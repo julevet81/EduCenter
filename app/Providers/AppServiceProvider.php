@@ -2,6 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\AttendanceRecord;
+use App\Models\Invoice;
+use App\Observers\AttendanceRecordObserver;
+use App\Observers\InvoiceObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        AttendanceRecord::observe(AttendanceRecordObserver::class);
+        Invoice::observe(InvoiceObserver::class);
     }
 }

@@ -15,8 +15,8 @@ class ApiSmokeTest extends TestCase
         $this->seed();
 
         $token = $this->postJson('/api/auth/login', [
-            'email' => 'admin@educenter.test',
-            'password' => 'password',
+            'email' => 'admin@gmail.com',
+            'password' => '12345678',
         ])->assertOk()->json('token');
 
         $this->withToken($token)
@@ -30,8 +30,8 @@ class ApiSmokeTest extends TestCase
         $this->seed();
 
         $token = $this->postJson('/api/auth/login', [
-            'email' => 'admin@educenter.test',
-            'password' => 'password',
+            'email' => 'admin@gmail.com',
+            'password' => '12345678',
         ])->assertOk()->json('token');
 
         $branch = Branch::firstOrFail();

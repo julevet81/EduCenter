@@ -16,8 +16,8 @@ POST /api/auth/login
 
 ```json
 {
-  "email": "admin@educenter.test",
-  "password": "password"
+  "email": "admin@gmail.com",
+  "password": "12345678"
 }
 ```
 
@@ -93,12 +93,32 @@ expense-categories
 expenses
 payrolls
 notifications
+parent-notifications
 ```
 
 Dashboard:
 
 ```http
 GET /api/dashboard/summary
+```
+
+Parent notification tools:
+
+```http
+GET /api/parent-notifications
+POST /api/parent-notifications/payment-reminders
+```
+
+```json
+{
+  "days_ahead": 3
+}
+```
+
+Attendance records with `status` equal to `absent`, `absence`, `late`, `tardy`, `غائب`, `غياب`, `متأخر`, or `تأخر` create parent notifications automatically. Payment reminders can also be generated from the CLI:
+
+```bash
+php artisan parents:payment-reminders --days=3
 ```
 
 ## Permissions

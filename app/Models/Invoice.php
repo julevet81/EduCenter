@@ -15,7 +15,23 @@ class Invoice extends Model
         return ['total' => 'decimal:2', 'discount' => 'decimal:2', 'due_date' => 'date'];
     }
 
-    public function student(): BelongsTo { return $this->belongsTo(Student::class); }
-    public function enrollment(): BelongsTo { return $this->belongsTo(Enrollment::class); }
-    public function payments(): HasMany { return $this->hasMany(Payment::class); }
+    public function student(): BelongsTo
+    {
+        return $this->belongsTo(Student::class);
+    }
+
+    public function enrollment(): BelongsTo
+    {
+        return $this->belongsTo(Enrollment::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function parentNotifications(): HasMany
+    {
+        return $this->hasMany(ParentNotification::class);
+    }
 }

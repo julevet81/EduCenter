@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             'groups', 'schedules', 'enrollments', 'attendance-sessions', 'attendance-records',
             'invoices', 'payments', 'exams', 'exam-results', 'expense-categories', 'expenses',
             'payrolls', 'notifications',
+            'parent-notifications',
             'roles', 'permissions',
         ];
 
@@ -45,16 +46,16 @@ class DatabaseSeeder extends Seeder
 
         $tenant = Tenant::firstOrCreate(
             ['code' => 'MAIN'],
-            ['name' => 'EduCenter Demo', 'phone' => '+213000000000', 'email' => 'admin@educenter.test', 'address' => 'Main branch']
+            ['name' => 'EduCenter Demo', 'phone' => '+213000000000', 'email' => 'admin@gmail.com', 'address' => 'Main branch']
         );
 
         $admin = User::firstOrCreate(
-            ['email' => 'admin@educenter.test'],
+            ['email' => 'admin@gmail.com'],
             [
                 'tenant_id' => $tenant->id,
                 'full_name' => 'System Administrator',
                 'phone' => '+213000000000',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('12345678'),
                 'is_active' => true,
             ]
         );

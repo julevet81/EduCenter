@@ -3,20 +3,22 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Services\Api\RoleService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 class RoleController extends Controller
 {
+    public function __construct(
+        private readonly RoleService $roles,
+    ) {}
+
     public function index(Request $request): JsonResponse
     {
         abort_unless($request->user()->can('roles.view'), 403);
 
-        return response()->json(Role::with('permissions:id,name')->orderBy('name')->paginate(
-            min(max((int) $request->integer('per_page', 15), 1), 100)
-        ));
+        return response()->json($this->roles->paginate((int) $request->integer('per_page', 15)));
     }
 
     public function store(Request $request): JsonResponse
@@ -29,17 +31,14 @@ class RoleController extends Controller
             'permissions.*' => ['string', 'exists:permissions,name'],
         ]);
 
-        $role = Role::create(['name' => $data['name'], 'guard_name' => 'web']);
-        $role->syncPermissions($data['permissions'] ?? []);
-
-        return response()->json($role->load('permissions:id,name'), 201);
+        return response()->json($this->roles->create($data), 201);
     }
 
     public function show(Request $request, int $id): JsonResponse
     {
         abort_unless($request->user()->can('roles.view'), 403);
 
-        return response()->json(Role::with('permissions:id,name')->findOrFail($id));
+        return response()->json($this->roles->find($id));
     }
 
     public function update(Request $request, int $id): JsonResponse
@@ -53,25 +52,14 @@ class RoleController extends Controller
             'permissions.*' => ['string', 'exists:permissions,name'],
         ]);
 
-        if (isset($data['name'])) {
-            $role->update(['name' => $data['name']]);
-        }
-
-        if (array_key_exists('permissions', $data)) {
-            $role->syncPermissions($data['permissions']);
-        }
-
-        return response()->json($role->load('permissions:id,name'));
+        return response()->json($this->roles->update($id, $data));
     }
 
     public function destroy(Request $request, int $id): JsonResponse
     {
         abort_unless($request->user()->can('roles.delete'), 403);
 
-        $role = Role::findOrFail($id);
-        abort_if($role->name === 'super-admin', 422, 'The super-admin role cannot be deleted.');
-
-        $role->delete();
+        $this->roles->delete($id);
 
         return response()->json(['message' => 'Deleted successfully.']);
     }
