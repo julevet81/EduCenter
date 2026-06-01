@@ -1,0 +1,1260 @@
+openapi: 3.1.0
+info:
+  title: EduCenter API
+  version: 1.0.0
+  description: OpenAPI specification for the EduCenter Laravel API. Import this file into Postman to generate a ready-to-use collection.
+servers:
+  - url: http://localhost:8000/api
+    description: Local Laravel server
+tags:
+  - name: Auth
+  - name: Dashboard
+  - name: Users
+  - name: Roles
+  - name: Permissions
+  - name: Academic
+  - name: Students
+  - name: Courses
+  - name: Attendance
+  - name: Finance
+  - name: Notifications
+security:
+  - bearerAuth: []
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login and create a Sanctum token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: admin@gmail.com
+              password: "12345678"
+      responses:
+        "200":
+          description: Authenticated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "422":
+          $ref: '#/components/responses/ValidationError'
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        "201":
+          description: Registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageWithUser'
+        "422":
+          $ref: '#/components/responses/ValidationError'
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get the authenticated user
+      responses:
+        "200":
+          description: Current user payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPayload'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Revoke the current token
+      responses:
+        "200":
+          $ref: '#/components/responses/Message'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+  /auth/profile:
+    put:
+      tags: [Auth]
+      summary: Update the authenticated user's profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdateRequest'
+      responses:
+        "200":
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageWithUser'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "422":
+          $ref: '#/components/responses/ValidationError'
+  /dashboard/summary:
+    get:
+      tags: [Dashboard]
+      summary: Get tenant dashboard summary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardSummary'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+  /permissions:
+    get:
+      tags: [Permissions]
+      summary: List permissions
+      parameters:
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        "200":
+          description: Paginated permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCollection'
+  /roles:
+    get:
+      tags: [Roles]
+      summary: List roles
+      parameters:
+        - $ref: '#/components/parameters/PerPage'
+      responses:
+        "200":
+          $ref: '#/components/responses/Paginated'
+    post:
+      tags: [Roles]
+      summary: Create a role
+      requestBody:
+        $ref: '#/components/requestBodies/Role'
+      responses:
+        "201":
+          $ref: '#/components/responses/Model'
+        "422":
+          $ref: '#/components/responses/ValidationError'
+  /roles/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Roles]
+      summary: Show a role
+      responses:
+        "200":
+          $ref: '#/components/responses/Model'
+    put:
+      tags: [Roles]
+      summary: Update a role
+      requestBody:
+        $ref: '#/components/requestBodies/Role'
+      responses:
+        "200":
+          $ref: '#/components/responses/Model'
+        "422":
+          $ref: '#/components/responses/ValidationError'
+    patch:
+      tags: [Roles]
+      summary: Partially update a role
+      requestBody:
+        $ref: '#/components/requestBodies/Role'
+      responses:
+        "200":
+          $ref: '#/components/responses/Model'
+    delete:
+      tags: [Roles]
+      summary: Delete a role
+      responses:
+        "200":
+          $ref: '#/components/responses/Message'
+  /users:
+    $ref: '#/components/pathItems/UsersCollection'
+  /users/{id}:
+    $ref: '#/components/pathItems/UsersItem'
+  /branches:
+    $ref: '#/components/pathItems/BranchesCollection'
+  /branches/{id}:
+    $ref: '#/components/pathItems/BranchesItem'
+  /academic-years:
+    $ref: '#/components/pathItems/AcademicYearsCollection'
+  /academic-years/{id}:
+    $ref: '#/components/pathItems/AcademicYearsItem'
+  /levels:
+    $ref: '#/components/pathItems/LevelsCollection'
+  /levels/{id}:
+    $ref: '#/components/pathItems/LevelsItem'
+  /sections:
+    $ref: '#/components/pathItems/SectionsCollection'
+  /sections/{id}:
+    $ref: '#/components/pathItems/SectionsItem'
+  /students:
+    $ref: '#/components/pathItems/StudentsCollection'
+  /students/{id}:
+    $ref: '#/components/pathItems/StudentsItem'
+  /student-documents:
+    $ref: '#/components/pathItems/StudentDocumentsCollection'
+  /student-documents/{id}:
+    $ref: '#/components/pathItems/StudentDocumentsItem'
+  /teachers:
+    $ref: '#/components/pathItems/TeachersCollection'
+  /teachers/{id}:
+    $ref: '#/components/pathItems/TeachersItem'
+  /course-categories:
+    $ref: '#/components/pathItems/CourseCategoriesCollection'
+  /course-categories/{id}:
+    $ref: '#/components/pathItems/CourseCategoriesItem'
+  /courses:
+    $ref: '#/components/pathItems/CoursesCollection'
+  /courses/{id}:
+    $ref: '#/components/pathItems/CoursesItem'
+  /classrooms:
+    $ref: '#/components/pathItems/ClassroomsCollection'
+  /classrooms/{id}:
+    $ref: '#/components/pathItems/ClassroomsItem'
+  /groups:
+    $ref: '#/components/pathItems/GroupsCollection'
+  /groups/{id}:
+    $ref: '#/components/pathItems/GroupsItem'
+  /schedules:
+    $ref: '#/components/pathItems/SchedulesCollection'
+  /schedules/{id}:
+    $ref: '#/components/pathItems/SchedulesItem'
+  /enrollments:
+    $ref: '#/components/pathItems/EnrollmentsCollection'
+  /enrollments/{id}:
+    $ref: '#/components/pathItems/EnrollmentsItem'
+  /attendance-sessions:
+    $ref: '#/components/pathItems/AttendanceSessionsCollection'
+  /attendance-sessions/{id}:
+    $ref: '#/components/pathItems/AttendanceSessionsItem'
+  /attendance-records:
+    $ref: '#/components/pathItems/AttendanceRecordsCollection'
+  /attendance-records/{id}:
+    $ref: '#/components/pathItems/AttendanceRecordsItem'
+  /invoices:
+    $ref: '#/components/pathItems/InvoicesCollection'
+  /invoices/{id}:
+    $ref: '#/components/pathItems/InvoicesItem'
+  /payments:
+    $ref: '#/components/pathItems/PaymentsCollection'
+  /payments/{id}:
+    $ref: '#/components/pathItems/PaymentsItem'
+  /exams:
+    $ref: '#/components/pathItems/ExamsCollection'
+  /exams/{id}:
+    $ref: '#/components/pathItems/ExamsItem'
+  /exam-results:
+    $ref: '#/components/pathItems/ExamResultsCollection'
+  /exam-results/{id}:
+    $ref: '#/components/pathItems/ExamResultsItem'
+  /expense-categories:
+    $ref: '#/components/pathItems/ExpenseCategoriesCollection'
+  /expense-categories/{id}:
+    $ref: '#/components/pathItems/ExpenseCategoriesItem'
+  /expenses:
+    $ref: '#/components/pathItems/ExpensesCollection'
+  /expenses/{id}:
+    $ref: '#/components/pathItems/ExpensesItem'
+  /payrolls:
+    $ref: '#/components/pathItems/PayrollsCollection'
+  /payrolls/{id}:
+    $ref: '#/components/pathItems/PayrollsItem'
+  /notifications:
+    $ref: '#/components/pathItems/NotificationsCollection'
+  /notifications/{id}:
+    $ref: '#/components/pathItems/NotificationsItem'
+  /parent-notifications:
+    get:
+      tags: [Notifications]
+      summary: List parent notifications
+      parameters:
+        - $ref: '#/components/parameters/PerPage'
+        - name: type
+          in: query
+          schema:
+            type: string
+          example: invoice_overdue
+        - name: status
+          in: query
+          schema:
+            type: string
+          example: sent
+        - name: student_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          $ref: '#/components/responses/Paginated'
+  /parent-notifications/payment-reminders:
+    post:
+      tags: [Notifications]
+      summary: Generate due and overdue payment reminders for parents
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                days_ahead:
+                  type: integer
+                  minimum: 0
+                  maximum: 60
+                  default: 3
+      responses:
+        "200":
+          description: Reminder generation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  created:
+                    type: object
+                    properties:
+                      invoice_due:
+                        type: integer
+                      invoice_overdue:
+                        type: integer
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    PerPage:
+      name: per_page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 15
+    Search:
+      name: search
+      in: query
+      schema:
+        type: string
+    Include:
+      name: include
+      in: query
+      description: Comma-separated relationship names allowed by each endpoint.
+      schema:
+        type: string
+  requestBodies:
+    Role:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/RoleRequest'
+    Users:
+      $ref: '#/components/requestBodies/UsersBody'
+    UsersBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UserRequest'
+    BranchesBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BranchRequest'
+    AcademicYearsBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AcademicYearRequest'
+    LevelsBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NameRequest'
+    SectionsBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NameRequest'
+    StudentsBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StudentRequest'
+    StudentDocumentsBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StudentDocumentRequest'
+    TeachersBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TeacherRequest'
+    CourseCategoriesBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NameRequest'
+    CoursesBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CourseRequest'
+    ClassroomsBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ClassroomRequest'
+    GroupsBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GroupRequest'
+    SchedulesBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ScheduleRequest'
+    EnrollmentsBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EnrollmentRequest'
+    AttendanceSessionsBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AttendanceSessionRequest'
+    AttendanceRecordsBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AttendanceRecordRequest'
+    InvoicesBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/InvoiceRequest'
+    PaymentsBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PaymentRequest'
+    ExamsBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExamRequest'
+    ExamResultsBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExamResultRequest'
+    ExpenseCategoriesBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NameRequest'
+    ExpensesBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ExpenseRequest'
+    PayrollsBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PayrollRequest'
+    NotificationsBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotificationRequest'
+  responses:
+    Message:
+      description: Message response
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+    Model:
+      description: Resource response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResourceResponse'
+    Paginated:
+      description: Paginated response
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PaginatedCollection'
+    Unauthorized:
+      description: Missing or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+  pathItems:
+    UsersCollection:
+      get:
+        tags: [Users]
+        summary: List users
+        parameters:
+          - $ref: '#/components/parameters/PerPage'
+          - $ref: '#/components/parameters/Search'
+          - $ref: '#/components/parameters/Include'
+        responses:
+          "200":
+            $ref: '#/components/responses/Paginated'
+      post:
+        tags: [Users]
+        summary: Create a user
+        requestBody:
+          $ref: '#/components/requestBodies/UsersBody'
+        responses:
+          "201":
+            $ref: '#/components/responses/Model'
+          "422":
+            $ref: '#/components/responses/ValidationError'
+    UsersItem:
+      $ref: '#/components/pathItems/CrudItem'
+    BranchesCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    BranchesItem:
+      $ref: '#/components/pathItems/CrudItem'
+    AcademicYearsCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    AcademicYearsItem:
+      $ref: '#/components/pathItems/CrudItem'
+    LevelsCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    LevelsItem:
+      $ref: '#/components/pathItems/CrudItem'
+    SectionsCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    SectionsItem:
+      $ref: '#/components/pathItems/CrudItem'
+    StudentsCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    StudentsItem:
+      $ref: '#/components/pathItems/CrudItem'
+    StudentDocumentsCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    StudentDocumentsItem:
+      $ref: '#/components/pathItems/CrudItem'
+    TeachersCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    TeachersItem:
+      $ref: '#/components/pathItems/CrudItem'
+    CourseCategoriesCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    CourseCategoriesItem:
+      $ref: '#/components/pathItems/CrudItem'
+    CoursesCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    CoursesItem:
+      $ref: '#/components/pathItems/CrudItem'
+    ClassroomsCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    ClassroomsItem:
+      $ref: '#/components/pathItems/CrudItem'
+    GroupsCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    GroupsItem:
+      $ref: '#/components/pathItems/CrudItem'
+    SchedulesCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    SchedulesItem:
+      $ref: '#/components/pathItems/CrudItem'
+    EnrollmentsCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    EnrollmentsItem:
+      $ref: '#/components/pathItems/CrudItem'
+    AttendanceSessionsCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    AttendanceSessionsItem:
+      $ref: '#/components/pathItems/CrudItem'
+    AttendanceRecordsCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    AttendanceRecordsItem:
+      $ref: '#/components/pathItems/CrudItem'
+    InvoicesCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    InvoicesItem:
+      $ref: '#/components/pathItems/CrudItem'
+    PaymentsCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    PaymentsItem:
+      $ref: '#/components/pathItems/CrudItem'
+    ExamsCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    ExamsItem:
+      $ref: '#/components/pathItems/CrudItem'
+    ExamResultsCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    ExamResultsItem:
+      $ref: '#/components/pathItems/CrudItem'
+    ExpenseCategoriesCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    ExpenseCategoriesItem:
+      $ref: '#/components/pathItems/CrudItem'
+    ExpensesCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    ExpensesItem:
+      $ref: '#/components/pathItems/CrudItem'
+    PayrollsCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    PayrollsItem:
+      $ref: '#/components/pathItems/CrudItem'
+    NotificationsCollection:
+      $ref: '#/components/pathItems/CrudCollection'
+    NotificationsItem:
+      $ref: '#/components/pathItems/CrudItem'
+    CrudCollection:
+      get:
+        summary: List resources
+        parameters:
+          - $ref: '#/components/parameters/PerPage'
+          - $ref: '#/components/parameters/Search'
+          - $ref: '#/components/parameters/Include'
+        responses:
+          "200":
+            $ref: '#/components/responses/Paginated'
+      post:
+        summary: Create a resource
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericModel'
+        responses:
+          "201":
+            $ref: '#/components/responses/Model'
+          "422":
+            $ref: '#/components/responses/ValidationError'
+    CrudItem:
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      get:
+        summary: Show a resource
+        parameters:
+          - $ref: '#/components/parameters/Include'
+        responses:
+          "200":
+            $ref: '#/components/responses/Model'
+      put:
+        summary: Update a resource
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericModel'
+        responses:
+          "200":
+            $ref: '#/components/responses/Model'
+          "422":
+            $ref: '#/components/responses/ValidationError'
+      patch:
+        summary: Partially update a resource
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericModel'
+        responses:
+          "200":
+            $ref: '#/components/responses/Model'
+          "422":
+            $ref: '#/components/responses/ValidationError'
+      delete:
+        summary: Delete a resource
+        responses:
+          "200":
+            $ref: '#/components/responses/Message'
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    RegisterRequest:
+      type: object
+      required: [full_name, email, password, password_confirmation]
+      properties:
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+        password_confirmation:
+          type: string
+          format: password
+    ProfileUpdateRequest:
+      type: object
+      properties:
+        full_name:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        password:
+          type: string
+          format: password
+          minLength: 8
+        password_confirmation:
+          type: string
+          format: password
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserPayload'
+    MessageWithUser:
+      type: object
+      properties:
+        message:
+          type: string
+        user:
+          $ref: '#/components/schemas/UserPayload'
+    UserPayload:
+      type: object
+      properties:
+        id:
+          type: integer
+        tenant_id:
+          type: integer
+        branch_id:
+          type: integer
+          nullable: true
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+        roles:
+          type: array
+          items:
+            type: string
+        permissions:
+          type: array
+          items:
+            type: string
+    DashboardSummary:
+      type: object
+      properties:
+        counts:
+          type: object
+          properties:
+            students:
+              type: integer
+            teachers:
+              type: integer
+            unpaid_invoices:
+              type: integer
+        finance:
+          type: object
+          properties:
+            invoice_total:
+              type: number
+            paid_total:
+              type: number
+            expenses_total:
+              type: number
+        recent:
+          type: object
+          properties:
+            students:
+              type: array
+              items:
+                $ref: '#/components/schemas/GenericModel'
+            payments:
+              type: array
+              items:
+                $ref: '#/components/schemas/GenericModel'
+    RoleRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+    UserRequest:
+      type: object
+      required: [full_name, email, password]
+      properties:
+        branch_id:
+          type: integer
+          nullable: true
+        full_name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+          nullable: true
+        password:
+          type: string
+          minLength: 8
+        is_active:
+          type: boolean
+        roles:
+          type: array
+          items:
+            type: string
+    BranchRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+        manager_id:
+          type: integer
+          nullable: true
+    AcademicYearRequest:
+      type: object
+      required: [name, start_date, end_date]
+      properties:
+        name:
+          type: string
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        is_current:
+          type: boolean
+    NameRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+    StudentRequest:
+      type: object
+      required: [branch_id, first_name, last_name]
+      properties:
+        branch_id:
+          type: integer
+        first_name:
+          type: string
+        last_name:
+          type: string
+        gender:
+          type: string
+          nullable: true
+        birth_date:
+          type: string
+          format: date
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        parent_phone:
+          type: string
+          nullable: true
+        parent_name:
+          type: string
+          nullable: true
+        address:
+          type: string
+          nullable: true
+    StudentDocumentRequest:
+      type: object
+      required: [student_id, title, file_path]
+      properties:
+        student_id:
+          type: integer
+        title:
+          type: string
+        file_path:
+          type: string
+    TeacherRequest:
+      type: object
+      required: [branch_id, full_name, salary_type, salary]
+      properties:
+        branch_id:
+          type: integer
+        user_id:
+          type: integer
+          nullable: true
+        full_name:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          format: email
+          nullable: true
+        specialization:
+          type: string
+          nullable: true
+        salary_type:
+          type: string
+        salary:
+          type: number
+    CourseRequest:
+      type: object
+      required: [category_id, name, type, duration_hours]
+      properties:
+        category_id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        type:
+          type: string
+        duration_hours:
+          type: integer
+    ClassroomRequest:
+      type: object
+      required: [branch_id, name, capacity]
+      properties:
+        branch_id:
+          type: integer
+        name:
+          type: string
+        capacity:
+          type: integer
+    GroupRequest:
+      type: object
+      required: [branch_id, course_id, teacher_id, academic_year_id, name, max_students, status]
+      properties:
+        branch_id:
+          type: integer
+        course_id:
+          type: integer
+        teacher_id:
+          type: integer
+        academic_year_id:
+          type: integer
+        level_id:
+          type: integer
+          nullable: true
+        section_id:
+          type: integer
+          nullable: true
+        classroom_id:
+          type: integer
+          nullable: true
+        name:
+          type: string
+        start_date:
+          type: string
+          format: date
+          nullable: true
+        end_date:
+          type: string
+          format: date
+          nullable: true
+        max_students:
+          type: integer
+        status:
+          type: string
+    ScheduleRequest:
+      type: object
+      required: [group_id, day_of_week, start_time, end_time]
+      properties:
+        group_id:
+          type: integer
+        day_of_week:
+          type: integer
+          minimum: 1
+          maximum: 7
+        start_time:
+          type: string
+          example: "08:00"
+        end_time:
+          type: string
+          example: "10:00"
+    EnrollmentRequest:
+      type: object
+      required: [student_id, group_id, enrollment_date, status]
+      properties:
+        student_id:
+          type: integer
+        group_id:
+          type: integer
+        enrollment_date:
+          type: string
+          format: date
+        registration_fee:
+          type: number
+        discount:
+          type: number
+        status:
+          type: string
+    AttendanceSessionRequest:
+      type: object
+      required: [group_id, session_date]
+      properties:
+        group_id:
+          type: integer
+        session_date:
+          type: string
+          format: date
+    AttendanceRecordRequest:
+      type: object
+      required: [session_id, student_id, status]
+      properties:
+        session_id:
+          type: integer
+        student_id:
+          type: integer
+        status:
+          type: string
+          description: absent, absence, late, tardy, present, or an application-specific status.
+    InvoiceRequest:
+      type: object
+      required: [student_id, enrollment_id, total, status]
+      properties:
+        student_id:
+          type: integer
+        enrollment_id:
+          type: integer
+        total:
+          type: number
+        discount:
+          type: number
+        due_date:
+          type: string
+          format: date
+          nullable: true
+        status:
+          type: string
+    PaymentRequest:
+      type: object
+      required: [invoice_id, amount, payment_method, paid_at]
+      properties:
+        invoice_id:
+          type: integer
+        amount:
+          type: number
+        payment_method:
+          type: string
+        paid_at:
+          type: string
+          format: date-time
+        reference:
+          type: string
+          nullable: true
+    ExamRequest:
+      type: object
+      required: [group_id, title, exam_date, total_mark]
+      properties:
+        group_id:
+          type: integer
+        title:
+          type: string
+        exam_date:
+          type: string
+          format: date
+        total_mark:
+          type: number
+    ExamResultRequest:
+      type: object
+      required: [exam_id, student_id, mark]
+      properties:
+        exam_id:
+          type: integer
+        student_id:
+          type: integer
+        mark:
+          type: number
+        notes:
+          type: string
+          nullable: true
+    ExpenseRequest:
+      type: object
+      required: [branch_id, category_id, amount, expense_date]
+      properties:
+        branch_id:
+          type: integer
+        category_id:
+          type: integer
+        amount:
+          type: number
+        expense_date:
+          type: string
+          format: date
+        description:
+          type: string
+          nullable: true
+    PayrollRequest:
+      type: object
+      required: [teacher_id, month, year, amount, status]
+      properties:
+        teacher_id:
+          type: integer
+        month:
+          type: integer
+          minimum: 1
+          maximum: 12
+        year:
+          type: integer
+          minimum: 2000
+          maximum: 2100
+        amount:
+          type: number
+        status:
+          type: string
+    NotificationRequest:
+      type: object
+      required: [user_id, title, body]
+      properties:
+        user_id:
+          type: integer
+        title:
+          type: string
+        body:
+          type: string
+        is_read:
+          type: boolean
+    GenericModel:
+      type: object
+      additionalProperties: true
+      properties:
+        id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    ResourceResponse:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/GenericModel'
+    PaginatedCollection:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/GenericModel'
+        links:
+          type: object
+          additionalProperties: true
+        meta:
+          type: object
+          additionalProperties: true
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
