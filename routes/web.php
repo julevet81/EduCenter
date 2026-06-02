@@ -9,6 +9,8 @@ Route::get('/', function () {
 
 Route::get('/run-seeders', function () {
     Artisan::call('migrate:fresh', ['--seed' => true, '--force' => true]);
+    Artisan::call('db:seed', ['--class' => 'Database\\Seeders\\DemoDataSeeder', '--force' => true]);
+
     return 'Seeders done';
 });
 

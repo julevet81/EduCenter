@@ -63,15 +63,7 @@ class DemoDataSeeder extends Seeder
         $adminRole->syncPermissions(Permission::all());
         $admin->assignRole($adminRole);
 
-        $branches = collect([
-            ['name' => 'المركز الرئيسي', 'phone' => '0550001001', 'address' => 'وسط المدينة، الطابق الثاني'],
-            ['name' => 'فرع اللغات', 'phone' => '0550001002', 'address' => 'حي الجامعة، قرب المكتبة'],
-            ['name' => 'فرع الدعم المدرسي', 'phone' => '0550001003', 'address' => 'شارع الاستقلال، مقابل المتوسطة'],
-        ])->map(fn (array $data) => Branch::updateOrCreate(
-            ['tenant_id' => $tenant->id, 'name' => $data['name']],
-            $data + ['tenant_id' => $tenant->id, 'manager_id' => $admin->id]
-        ));
-
+        $branches = $this->seedBranches($tenant, $admin);
         $admin->forceFill(['tenant_id' => $tenant->id, 'branch_id' => $branches->first()->id, 'is_active' => true])->save();
 
         $academicYear = AcademicYear::updateOrCreate(
@@ -79,117 +71,27 @@ class DemoDataSeeder extends Seeder
             ['start_date' => '2026-09-01', 'end_date' => '2027-07-31', 'is_current' => true]
         );
 
-        $levels = collect(['ابتدائي', 'متوسط', 'ثانوي', 'لغات'])->map(
+        $levels = collect(['Primary', 'Middle', 'Secondary', 'Languages', 'Professional'])->map(
             fn (string $name) => Level::firstOrCreate(['tenant_id' => $tenant->id, 'name' => $name])
         );
 
-        $sections = collect(['A', 'B', 'C'])->map(
+        $sections = collect(['A', 'B', 'C', 'D'])->map(
             fn (string $name) => Section::firstOrCreate(['tenant_id' => $tenant->id, 'name' => $name])
         );
 
-        $categories = collect([
-            'دعم مدرسي',
-            'تعليم اللغات',
-            'تكوين مهني قصير',
-        ])->map(fn (string $name) => CourseCategory::firstOrCreate(['tenant_id' => $tenant->id, 'name' => $name]));
+        $categories = collect(['School Support', 'Languages', 'Professional Training', 'Exam Preparation'])->map(
+            fn (string $name) => CourseCategory::firstOrCreate(['tenant_id' => $tenant->id, 'name' => $name])
+        );
 
-        $expenseCategories = collect(['كراء وتجهيزات', 'أجور', 'تسويق', 'مصاريف عامة'])->map(
+        $expenseCategories = collect(['Rent and Utilities', 'Payroll', 'Marketing', 'Supplies', 'Maintenance'])->map(
             fn (string $name) => ExpenseCategory::firstOrCreate(['tenant_id' => $tenant->id, 'name' => $name])
         );
 
-        $classrooms = collect([
-            ['branch' => 0, 'name' => 'قاعة 01', 'capacity' => 24],
-            ['branch' => 0, 'name' => 'قاعة الإعلام الآلي', 'capacity' => 18],
-            ['branch' => 1, 'name' => 'Language Lab', 'capacity' => 16],
-            ['branch' => 2, 'name' => 'قاعة الدعم', 'capacity' => 22],
-        ])->map(fn (array $data) => Classroom::updateOrCreate(
-            ['branch_id' => $branches[$data['branch']]->id, 'name' => $data['name']],
-            ['capacity' => $data['capacity']]
-        ));
-
-        $courses = collect([
-            ['category' => 0, 'name' => 'رياضيات الرابعة متوسط', 'type' => 'school_support', 'duration_hours' => 48, 'description' => 'مراجعة منظمة وتمارين تطبيقية للتحضير للفروض والاختبارات.'],
-            ['category' => 0, 'name' => 'فيزياء الثالثة ثانوي', 'type' => 'school_support', 'duration_hours' => 56, 'description' => 'دروس دعم مكثفة مع حل مواضيع البكالوريا.'],
-            ['category' => 1, 'name' => 'اللغة الإنجليزية A1', 'type' => 'language', 'duration_hours' => 40, 'description' => 'محادثة وقواعد أساسية للمبتدئين.'],
-            ['category' => 1, 'name' => 'اللغة الفرنسية B1', 'type' => 'language', 'duration_hours' => 44, 'description' => 'تطوير التعبير الشفهي والكتابي.'],
-            ['category' => 2, 'name' => 'أساسيات الإعلام الآلي', 'type' => 'training', 'duration_hours' => 36, 'description' => 'مهارات مكتبية واستخدام الحاسوب للمبتدئين.'],
-        ])->map(fn (array $data) => Course::updateOrCreate(
-            ['tenant_id' => $tenant->id, 'name' => $data['name']],
-            [
-                'tenant_id' => $tenant->id,
-                'category_id' => $categories[$data['category']]->id,
-                'type' => $data['type'],
-                'duration_hours' => $data['duration_hours'],
-                'description' => $data['description'],
-            ]
-        ));
-
-        $teachers = collect([
-            ['branch' => 0, 'full_name' => 'نوال مراد', 'phone' => '0551112001', 'email' => 'nawal.teacher@example.com', 'specialization' => 'رياضيات', 'salary_type' => 'hourly', 'salary' => 1800],
-            ['branch' => 2, 'full_name' => 'سليم بن عيسى', 'phone' => '0551112002', 'email' => 'salim.teacher@example.com', 'specialization' => 'فيزياء', 'salary_type' => 'hourly', 'salary' => 2200],
-            ['branch' => 1, 'full_name' => 'أمينة حاجي', 'phone' => '0551112003', 'email' => 'amina.teacher@example.com', 'specialization' => 'إنجليزية', 'salary_type' => 'fixed', 'salary' => 68000],
-            ['branch' => 1, 'full_name' => 'كريم منصوري', 'phone' => '0551112004', 'email' => 'karim.teacher@example.com', 'specialization' => 'فرنسية', 'salary_type' => 'fixed', 'salary' => 64000],
-            ['branch' => 0, 'full_name' => 'ليلى دراجي', 'phone' => '0551112005', 'email' => 'leila.teacher@example.com', 'specialization' => 'إعلام آلي', 'salary_type' => 'percentage', 'salary' => 35],
-        ])->map(fn (array $data) => Teacher::updateOrCreate(
-            ['tenant_id' => $tenant->id, 'email' => $data['email']],
-            [
-                'tenant_id' => $tenant->id,
-                'branch_id' => $branches[$data['branch']]->id,
-                'full_name' => $data['full_name'],
-                'phone' => $data['phone'],
-                'specialization' => $data['specialization'],
-                'salary_type' => $data['salary_type'],
-                'salary' => $data['salary'],
-            ]
-        ));
-
-        $students = collect([
-            ['branch' => 0, 'first_name' => 'أمين', 'last_name' => 'بن يوسف', 'gender' => 'male', 'birth_date' => '2011-03-12', 'phone' => '0552100001', 'parent_name' => 'محمد بن يوسف', 'parent_phone' => '0662100001', 'address' => 'حي النصر'],
-            ['branch' => 0, 'first_name' => 'مريم', 'last_name' => 'خالد', 'gender' => 'female', 'birth_date' => '2010-11-04', 'phone' => '0552100002', 'parent_name' => 'سميرة خالد', 'parent_phone' => '0662100002', 'address' => 'وسط المدينة'],
-            ['branch' => 2, 'first_name' => 'ياسين', 'last_name' => 'عماري', 'gender' => 'male', 'birth_date' => '2008-07-20', 'phone' => '0552100003', 'parent_name' => 'فاطمة عماري', 'parent_phone' => '0662100003', 'address' => 'حي السلام'],
-            ['branch' => 2, 'first_name' => 'سارة', 'last_name' => 'بلقاسم', 'gender' => 'female', 'birth_date' => '2007-02-16', 'phone' => '0552100004', 'parent_name' => 'علي بلقاسم', 'parent_phone' => '0662100004', 'address' => 'شارع الاستقلال'],
-            ['branch' => 1, 'first_name' => 'ريان', 'last_name' => 'مغربي', 'gender' => 'male', 'birth_date' => '2013-09-01', 'phone' => '0552100005', 'parent_name' => 'نادية مغربي', 'parent_phone' => '0662100005', 'address' => 'حي الجامعة'],
-            ['branch' => 1, 'first_name' => 'لينا', 'last_name' => 'قاسمي', 'gender' => 'female', 'birth_date' => '2012-12-22', 'phone' => '0552100006', 'parent_name' => 'مراد قاسمي', 'parent_phone' => '0662100006', 'address' => 'حي الزهور'],
-            ['branch' => 0, 'first_name' => 'نور', 'last_name' => 'شريف', 'gender' => 'female', 'birth_date' => '2009-05-09', 'phone' => '0552100007', 'parent_name' => 'كمال شريف', 'parent_phone' => '0662100007', 'address' => 'حي البساتين'],
-            ['branch' => 1, 'first_name' => 'إلياس', 'last_name' => 'بوكرمة', 'gender' => 'male', 'birth_date' => '2014-01-18', 'phone' => '0552100008', 'parent_name' => 'سعاد بوكرمة', 'parent_phone' => '0662100008', 'address' => 'حي النخيل'],
-        ])->map(fn (array $data) => Student::updateOrCreate(
-            ['tenant_id' => $tenant->id, 'phone' => $data['phone']],
-            [
-                'tenant_id' => $tenant->id,
-                'branch_id' => $branches[$data['branch']]->id,
-                'first_name' => $data['first_name'],
-                'last_name' => $data['last_name'],
-                'gender' => $data['gender'],
-                'birth_date' => $data['birth_date'],
-                'parent_name' => $data['parent_name'],
-                'parent_phone' => $data['parent_phone'],
-                'address' => $data['address'],
-            ]
-        ));
-
-        $groups = collect([
-            ['branch' => 0, 'course' => 0, 'teacher' => 0, 'level' => 1, 'section' => 0, 'classroom' => 0, 'name' => 'رياضيات 4 متوسط - فوج A', 'max_students' => 18],
-            ['branch' => 2, 'course' => 1, 'teacher' => 1, 'level' => 2, 'section' => 1, 'classroom' => 3, 'name' => 'فيزياء بكالوريا - فوج B', 'max_students' => 16],
-            ['branch' => 1, 'course' => 2, 'teacher' => 2, 'level' => 3, 'section' => 0, 'classroom' => 2, 'name' => 'English A1 - Evening', 'max_students' => 14],
-            ['branch' => 1, 'course' => 3, 'teacher' => 3, 'level' => 3, 'section' => 1, 'classroom' => 2, 'name' => 'Français B1 - Weekend', 'max_students' => 14],
-            ['branch' => 0, 'course' => 4, 'teacher' => 4, 'level' => 3, 'section' => 2, 'classroom' => 1, 'name' => 'إعلام آلي للمبتدئين', 'max_students' => 12],
-        ])->map(fn (array $data) => Group::updateOrCreate(
-            ['tenant_id' => $tenant->id, 'name' => $data['name']],
-            [
-                'tenant_id' => $tenant->id,
-                'branch_id' => $branches[$data['branch']]->id,
-                'course_id' => $courses[$data['course']]->id,
-                'teacher_id' => $teachers[$data['teacher']]->id,
-                'academic_year_id' => $academicYear->id,
-                'level_id' => $levels[$data['level']]->id,
-                'section_id' => $sections[$data['section']]->id,
-                'classroom_id' => $classrooms[$data['classroom']]->id,
-                'start_date' => '2026-09-10',
-                'end_date' => '2027-06-20',
-                'max_students' => $data['max_students'],
-                'status' => 'active',
-            ]
-        ));
+        $classrooms = $this->seedClassrooms($branches);
+        $courses = $this->seedCourses($tenant, $categories);
+        $teachers = $this->seedTeachers($tenant, $branches);
+        $students = $this->seedStudents($tenant, $branches);
+        $groups = $this->seedGroups($tenant, $branches, $courses, $teachers, $academicYear, $levels, $sections, $classrooms);
 
         $this->seedSchedules($groups);
         $enrollments = $this->seedEnrollments($students, $groups);
@@ -201,20 +103,173 @@ class DemoDataSeeder extends Seeder
         $this->seedNotifications($admin, $invoices);
     }
 
-    private function seedSchedules($groups): void
+    private function seedBranches(Tenant $tenant, User $admin)
     {
-        $plans = [
-            0 => [[2, '16:00', '18:00'], [5, '09:00', '11:00']],
-            1 => [[1, '17:00', '19:00'], [4, '17:00', '19:00']],
-            2 => [[3, '18:00', '19:30'], [6, '10:00', '11:30']],
-            3 => [[5, '14:00', '16:00'], [6, '14:00', '16:00']],
-            4 => [[2, '09:00', '11:00'], [4, '09:00', '11:00']],
+        return collect([
+            ['name' => 'Main Center', 'phone' => '0550001001', 'address' => 'City center, second floor'],
+            ['name' => 'Languages Branch', 'phone' => '0550001002', 'address' => 'University district'],
+            ['name' => 'School Support Branch', 'phone' => '0550001003', 'address' => 'Independence avenue'],
+            ['name' => 'West Training Branch', 'phone' => '0550001004', 'address' => 'West district'],
+            ['name' => 'Evening Classes Branch', 'phone' => '0550001005', 'address' => 'New town'],
+        ])->map(fn (array $data) => Branch::updateOrCreate(
+            ['tenant_id' => $tenant->id, 'name' => $data['name']],
+            $data + ['tenant_id' => $tenant->id, 'manager_id' => $admin->id]
+        ));
+    }
+
+    private function seedClassrooms($branches)
+    {
+        $classrooms = collect();
+
+        foreach ($branches as $branchIndex => $branch) {
+            foreach (range(1, 2) as $room) {
+                $classrooms->push(Classroom::updateOrCreate(
+                    ['branch_id' => $branch->id, 'name' => 'Room '.($branchIndex + 1).'-'.$room],
+                    ['capacity' => 16 + ($room * 4) + $branchIndex]
+                ));
+            }
+        }
+
+        return $classrooms;
+    }
+
+    private function seedCourses(Tenant $tenant, $categories)
+    {
+        $items = [
+            [0, 'Mathematics Middle 4', 'school_support', 48],
+            [0, 'Physics Secondary 3', 'school_support', 56],
+            [0, 'Arabic Exam Support', 'school_support', 36],
+            [0, 'Science Middle 3', 'school_support', 42],
+            [1, 'English A1', 'language', 40],
+            [1, 'English B1 Conversation', 'language', 44],
+            [1, 'French A2', 'language', 42],
+            [1, 'French B1 Writing', 'language', 44],
+            [2, 'Computer Basics', 'training', 36],
+            [2, 'Office Tools', 'training', 30],
+            [2, 'Graphic Design Intro', 'training', 34],
+            [3, 'Baccalaureate Intensive Pack', 'exam_preparation', 64],
         ];
 
-        foreach ($plans as $groupIndex => $items) {
-            foreach ($items as [$day, $start, $end]) {
+        return collect($items)->map(fn (array $item) => Course::updateOrCreate(
+            ['tenant_id' => $tenant->id, 'name' => $item[1]],
+            [
+                'tenant_id' => $tenant->id,
+                'category_id' => $categories[$item[0]]->id,
+                'type' => $item[2],
+                'duration_hours' => $item[3],
+                'description' => 'Demo course for center management workflows.',
+            ]
+        ));
+    }
+
+    private function seedTeachers(Tenant $tenant, $branches)
+    {
+        $items = [
+            [0, 'Nawal Mourad', 'Mathematics', 'hourly', 1800],
+            [2, 'Salim Ben Aissa', 'Physics', 'hourly', 2200],
+            [1, 'Amina Hadji', 'English', 'fixed', 68000],
+            [1, 'Karim Mansouri', 'French', 'fixed', 64000],
+            [0, 'Leila Derradji', 'Computer Science', 'percentage', 35],
+            [3, 'Rachid Belkacem', 'Arabic', 'fixed', 59000],
+            [4, 'Samira Khaled', 'Science', 'hourly', 1700],
+            [2, 'Yacine Amari', 'Mathematics', 'fixed', 62000],
+            [3, 'Meriem Saidi', 'Graphic Design', 'percentage', 40],
+            [4, 'Ilyes Cherif', 'Office Tools', 'hourly', 1600],
+            [0, 'Nadia Gherbi', 'Exam Coaching', 'fixed', 72000],
+            [1, 'Sofiane Kaci', 'Spanish', 'hourly', 1900],
+        ];
+
+        return collect($items)->map(function (array $item, int $index) use ($tenant, $branches) {
+            $email = 'teacher'.str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT).'@example.com';
+
+            return Teacher::updateOrCreate(
+                ['tenant_id' => $tenant->id, 'email' => $email],
+                [
+                    'tenant_id' => $tenant->id,
+                    'branch_id' => $branches[$item[0]]->id,
+                    'full_name' => $item[1],
+                    'phone' => '055111'.str_pad((string) ($index + 1), 4, '0', STR_PAD_LEFT),
+                    'specialization' => $item[2],
+                    'salary_type' => $item[3],
+                    'salary' => $item[4],
+                ]
+            );
+        });
+    }
+
+    private function seedStudents(Tenant $tenant, $branches)
+    {
+        $firstNames = ['Amine', 'Meriem', 'Yacine', 'Sara', 'Rayan', 'Lina', 'Nour', 'Ilyes', 'Aya', 'Adam', 'Malak', 'Anis', 'Rima', 'Walid', 'Hiba', 'Sami', 'Dina', 'Omar', 'Lamis', 'Nassim'];
+        $lastNames = ['Benyoucef', 'Khaled', 'Amari', 'Belkacem', 'Maghrabi', 'Kacemi', 'Cherif', 'Boukermia', 'Saidi', 'Mansouri', 'Haddad', 'Brahimi', 'Kaci', 'Meziane', 'Dahmani', 'Touati', 'Ferradj', 'Rahmani', 'Ziani', 'Bensalem'];
+        $students = collect();
+
+        foreach (range(1, 40) as $index) {
+            $branch = $branches[($index - 1) % $branches->count()];
+            $firstName = $firstNames[($index - 1) % count($firstNames)];
+            $lastName = $lastNames[(int) floor(($index - 1) / 2) % count($lastNames)];
+            $phone = '055210'.str_pad((string) $index, 4, '0', STR_PAD_LEFT);
+
+            $students->push(Student::updateOrCreate(
+                ['tenant_id' => $tenant->id, 'phone' => $phone],
+                [
+                    'tenant_id' => $tenant->id,
+                    'branch_id' => $branch->id,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'gender' => $index % 2 === 0 ? 'female' : 'male',
+                    'birth_date' => Carbon::parse('2007-01-01')->addMonths($index * 3)->toDateString(),
+                    'parent_name' => 'Parent '.$lastName,
+                    'parent_phone' => '066210'.str_pad((string) $index, 4, '0', STR_PAD_LEFT),
+                    'address' => 'Demo address '.$index,
+                ]
+            ));
+        }
+
+        return $students;
+    }
+
+    private function seedGroups(Tenant $tenant, $branches, $courses, $teachers, AcademicYear $academicYear, $levels, $sections, $classrooms)
+    {
+        $groups = collect();
+
+        foreach ($courses as $index => $course) {
+            $branch = $branches[$index % $branches->count()];
+            $teacher = $teachers[$index % $teachers->count()];
+            $classroom = $classrooms->where('branch_id', $branch->id)->values()[$index % 2] ?? $classrooms->first();
+
+            $groups->push(Group::updateOrCreate(
+                ['tenant_id' => $tenant->id, 'name' => $course->name.' - Group '.chr(65 + ($index % 4))],
+                [
+                    'tenant_id' => $tenant->id,
+                    'branch_id' => $branch->id,
+                    'course_id' => $course->id,
+                    'teacher_id' => $teacher->id,
+                    'academic_year_id' => $academicYear->id,
+                    'level_id' => $levels[$index % $levels->count()]->id,
+                    'section_id' => $sections[$index % $sections->count()]->id,
+                    'classroom_id' => $classroom->id,
+                    'start_date' => Carbon::parse('2026-09-10')->addDays($index)->toDateString(),
+                    'end_date' => '2027-06-20',
+                    'max_students' => 18 + ($index % 6),
+                    'status' => $index % 11 === 0 ? 'pending' : 'active',
+                ]
+            ));
+        }
+
+        return $groups;
+    }
+
+    private function seedSchedules($groups): void
+    {
+        foreach ($groups as $index => $group) {
+            $slots = [
+                [($index % 6) + 1, '16:00', '18:00'],
+                [(($index + 2) % 6) + 1, '09:00', '11:00'],
+            ];
+
+            foreach ($slots as [$day, $start, $end]) {
                 Schedule::updateOrCreate(
-                    ['group_id' => $groups[$groupIndex]->id, 'day_of_week' => $day, 'start_time' => $start],
+                    ['group_id' => $group->id, 'day_of_week' => $day, 'start_time' => $start],
                     ['end_time' => $end]
                 );
             }
@@ -223,42 +278,48 @@ class DemoDataSeeder extends Seeder
 
     private function seedEnrollments($students, $groups)
     {
-        $map = [
-            [0, 0], [1, 0], [6, 0],
-            [2, 1], [3, 1],
-            [4, 2], [5, 2], [7, 2],
-            [5, 3], [7, 3],
-            [0, 4], [2, 4],
-        ];
+        $enrollments = collect();
 
-        return collect($map)->map(fn (array $item) => Enrollment::updateOrCreate(
-            ['student_id' => $students[$item[0]]->id, 'group_id' => $groups[$item[1]]->id],
-            [
-                'enrollment_date' => Carbon::parse('2026-09-01')->addDays($item[0] + $item[1]),
-                'registration_fee' => 2500,
-                'discount' => in_array($item[0], [1, 5], true) ? 1000 : 0,
-                'status' => 'active',
-            ]
-        ));
+        foreach ($groups as $groupIndex => $group) {
+            $selectedStudents = $students
+                ->slice(($groupIndex * 3) % max(1, $students->count()), 8)
+                ->when(fn ($slice) => $slice->count() < 8, fn ($slice) => $slice->concat($students->take(8 - $slice->count())))
+                ->values();
+
+            foreach ($selectedStudents as $studentIndex => $student) {
+                $enrollments->push(Enrollment::updateOrCreate(
+                    ['student_id' => $student->id, 'group_id' => $group->id],
+                    [
+                        'enrollment_date' => Carbon::parse('2026-09-01')->addDays($groupIndex + $studentIndex),
+                        'registration_fee' => 2500,
+                        'discount' => $studentIndex % 5 === 0 ? 1000 : 0,
+                        'status' => $studentIndex % 13 === 0 ? 'paused' : 'active',
+                    ]
+                ));
+            }
+        }
+
+        return $enrollments;
     }
 
     private function seedInvoicesAndPayments($enrollments)
     {
         return $enrollments->values()->map(function (Enrollment $enrollment, int $index) {
-            $status = match ($index % 4) {
+            $status = match ($index % 5) {
                 0 => 'paid',
                 1 => 'unpaid',
                 2 => 'partial',
-                default => 'pending',
+                3 => 'pending',
+                default => 'overdue',
             };
 
-            $total = [12000, 15000, 18000, 22000][$index % 4];
+            $total = [12000, 15000, 18000, 22000, 26000][$index % 5];
             $invoice = Invoice::updateOrCreate(
                 ['student_id' => $enrollment->student_id, 'enrollment_id' => $enrollment->id],
                 [
                     'total' => $total,
                     'discount' => $enrollment->discount,
-                    'due_date' => Carbon::today()->subDays(8 - ($index % 6)),
+                    'due_date' => Carbon::today()->subDays(14 - ($index % 20)),
                     'status' => $status,
                 ]
             );
@@ -269,8 +330,8 @@ class DemoDataSeeder extends Seeder
                     [
                         'invoice_id' => $invoice->id,
                         'amount' => $status === 'paid' ? $total - $enrollment->discount : (int) (($total - $enrollment->discount) / 2),
-                        'payment_method' => $index % 2 === 0 ? 'cash' : 'bank',
-                        'paid_at' => Carbon::now()->subDays($index + 1),
+                        'payment_method' => ['cash', 'bank', 'card', 'transfer'][$index % 4],
+                        'paid_at' => Carbon::now()->subDays($index % 30),
                     ]
                 );
             }
@@ -282,18 +343,18 @@ class DemoDataSeeder extends Seeder
     private function seedAttendance($groups, $enrollments): void
     {
         foreach ($groups as $groupIndex => $group) {
-            $session = AttendanceSession::updateOrCreate(
-                ['group_id' => $group->id, 'session_date' => Carbon::today()->subDays($groupIndex + 1)],
-                []
-            );
-
-            $groupEnrollments = $enrollments->where('group_id', $group->id)->values();
-
-            foreach ($groupEnrollments as $index => $enrollment) {
-                AttendanceRecord::updateOrCreate(
-                    ['session_id' => $session->id, 'student_id' => $enrollment->student_id],
-                    ['status' => $index === 1 ? 'absent' : ($index === 2 ? 'late' : 'present')]
+            foreach (range(1, 3) as $sessionIndex) {
+                $session = AttendanceSession::updateOrCreate(
+                    ['group_id' => $group->id, 'session_date' => Carbon::today()->subDays(($groupIndex * 3) + $sessionIndex)],
+                    []
                 );
+
+                foreach ($enrollments->where('group_id', $group->id)->values() as $index => $enrollment) {
+                    AttendanceRecord::updateOrCreate(
+                        ['session_id' => $session->id, 'student_id' => $enrollment->student_id],
+                        ['status' => ['present', 'present', 'late', 'absent'][($index + $sessionIndex) % 4]]
+                    );
+                }
             }
         }
     }
@@ -301,16 +362,18 @@ class DemoDataSeeder extends Seeder
     private function seedExams($groups, $enrollments): void
     {
         foreach ($groups as $groupIndex => $group) {
-            $exam = Exam::firstOrCreate(
-                ['group_id' => $group->id, 'title' => 'اختبار تشخيصي'],
-                ['exam_date' => Carbon::today()->addDays(10 + $groupIndex), 'total_mark' => 20]
-            );
-
-            foreach ($enrollments->where('group_id', $group->id)->values() as $index => $enrollment) {
-                ExamResult::updateOrCreate(
-                    ['exam_id' => $exam->id, 'student_id' => $enrollment->student_id],
-                    ['mark' => min(20, 11 + $index + $groupIndex), 'notes' => $index === 0 ? 'مستوى جيد' : null]
+            foreach (['Diagnostic Test', 'Monthly Assessment'] as $examIndex => $title) {
+                $exam = Exam::firstOrCreate(
+                    ['group_id' => $group->id, 'title' => $title],
+                    ['exam_date' => Carbon::today()->addDays(10 + $groupIndex + $examIndex), 'total_mark' => 20]
                 );
+
+                foreach ($enrollments->where('group_id', $group->id)->values() as $index => $enrollment) {
+                    ExamResult::updateOrCreate(
+                        ['exam_id' => $exam->id, 'student_id' => $enrollment->student_id],
+                        ['mark' => min(20, 9 + (($index + $groupIndex + $examIndex) % 11)), 'notes' => $index % 4 === 0 ? 'Needs follow-up' : null]
+                    );
+                }
             }
         }
     }
@@ -319,17 +382,19 @@ class DemoDataSeeder extends Seeder
     {
         foreach ($branches as $branchIndex => $branch) {
             foreach ($expenseCategories as $categoryIndex => $category) {
-                Expense::updateOrCreate(
-                    [
-                        'branch_id' => $branch->id,
-                        'category_id' => $category->id,
-                        'expense_date' => Carbon::today()->subDays($branchIndex + $categoryIndex + 3),
-                    ],
-                    [
-                        'amount' => [18000, 42000, 12000, 8000][$categoryIndex],
-                        'description' => 'مصروف تجريبي للواجهة ولوحة المالية',
-                    ]
-                );
+                foreach (range(0, 2) as $monthOffset) {
+                    Expense::updateOrCreate(
+                        [
+                            'branch_id' => $branch->id,
+                            'category_id' => $category->id,
+                            'expense_date' => Carbon::today()->subMonths($monthOffset)->subDays($branchIndex + $categoryIndex + 3),
+                        ],
+                        [
+                            'amount' => [18000, 42000, 12000, 8000, 15000][$categoryIndex] + ($branchIndex * 1000),
+                            'description' => 'Demo operating expense for reports and dashboards.',
+                        ]
+                    );
+                }
             }
         }
     }
@@ -337,23 +402,25 @@ class DemoDataSeeder extends Seeder
     private function seedPayrolls($teachers): void
     {
         foreach ($teachers as $teacher) {
-            Payroll::updateOrCreate(
-                ['teacher_id' => $teacher->id, 'month' => 5, 'year' => 2026],
-                ['amount' => $teacher->salary_type === 'fixed' ? $teacher->salary : 52000, 'status' => 'paid']
-            );
+            foreach ([4, 5, 6] as $month) {
+                Payroll::updateOrCreate(
+                    ['teacher_id' => $teacher->id, 'month' => $month, 'year' => 2026],
+                    ['amount' => $teacher->salary_type === 'fixed' ? $teacher->salary : 52000 + ($month * 500), 'status' => $month === 6 ? 'pending' : 'paid']
+                );
+            }
         }
     }
 
     private function seedNotifications(User $admin, $invoices): void
     {
         Notification::firstOrCreate(
-            ['user_id' => $admin->id, 'title' => 'مرحبا بك في EduCenter'],
-            ['body' => 'تم تجهيز بيانات تجريبية متكاملة لتجربة لوحة التحكم.', 'is_read' => false]
+            ['user_id' => $admin->id, 'title' => 'Welcome to EduCenter'],
+            ['body' => 'Demo data has been expanded for a richer management dashboard.', 'is_read' => false]
         );
 
-        Notification::firstOrCreate(
-            ['user_id' => $admin->id, 'title' => 'فواتير تحتاج متابعة'],
-            ['body' => 'يوجد '.$invoices->where('status', '!=', 'paid')->count().' فواتير غير مدفوعة أو جزئية.', 'is_read' => false]
+        Notification::updateOrCreate(
+            ['user_id' => $admin->id, 'title' => 'Invoices need follow-up'],
+            ['body' => 'There are '.$invoices->where('status', '!=', 'paid')->count().' invoices not fully paid.', 'is_read' => false]
         );
     }
 

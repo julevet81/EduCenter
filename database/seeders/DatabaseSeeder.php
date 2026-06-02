@@ -83,8 +83,7 @@ class DatabaseSeeder extends Seeder
 
         CourseCategory::firstOrCreate(['tenant_id' => $tenant->id, 'name' => 'School Support']);
         ExpenseCategory::firstOrCreate(['tenant_id' => $tenant->id, 'name' => 'General']);
-        $this->call([
-            DemoDataSeeder::class,
-        ]);
+
+        //$this->call(DemoDataSeeder::class);
     }
 }
