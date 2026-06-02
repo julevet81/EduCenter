@@ -4,12 +4,8 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('frontend');
+    return view('welcome');
 });
-
-Route::get('/app/{any?}', function () {
-    return view('frontend');
-})->where('any', '.*');
 
 Route::get('/run-seeders', function () {
     Artisan::call('migrate:fresh', ['--seed' => true, '--force' => true]);
