@@ -57,6 +57,7 @@ return new class extends Migration
             $table->foreignId('branch_id')->constrained()->restrictOnDelete();
             $table->string('first_name');
             $table->string('last_name');
+            $table->string('qr_code')->nullable();
             $table->string('gender')->nullable();
             $table->date('birth_date')->nullable();
             $table->string('phone')->nullable();

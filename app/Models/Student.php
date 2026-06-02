@@ -12,7 +12,7 @@ class Student extends Model
     use BelongsToTenant;
 
     protected $fillable = [
-        'tenant_id', 'branch_id', 'first_name', 'last_name', 'gender', 'birth_date',
+        'tenant_id', 'branch_id', 'first_name', 'last_name', 'qr_code', 'gender', 'birth_date',
         'phone', 'parent_phone', 'parent_name', 'address',
     ];
 

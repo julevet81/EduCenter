@@ -216,6 +216,7 @@ class DemoDataSeeder extends Seeder
                     'branch_id' => $branch->id,
                     'first_name' => $firstName,
                     'last_name' => $lastName,
+                    'qr_code' => 'QR'.str_pad((string) $index, 6, '0', STR_PAD_LEFT),
                     'gender' => $index % 2 === 0 ? 'female' : 'male',
                     'birth_date' => Carbon::parse('2007-01-01')->addMonths($index * 3)->toDateString(),
                     'parent_name' => 'Parent '.$lastName,
